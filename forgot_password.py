@@ -5,31 +5,18 @@ from mysql.connector import Error  # Importing the Error class from mysql.connec
 import os
 import base64
 import hashlib
-import re
 import random
 import smtplib
 from email.mime.text import MIMEText
 
-# ==========================
-#   DB CONFIG
-# ==========================
-DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "calladoctor1234",
-    "database": "calladoctor",
-}
-
-# ==========================
-#   EMAIL CONFIG
-# ==========================
-# Using Gmail with App Password.
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_ADDRESS = "linkeshjpr.25@gmail.com"
-# App password MUST be without spaces:
-EMAIL_PASSWORD = "gdnmwsbcljegppkp"
-
+# Import config (DB + EMAIL) from separate file
+from config import (
+    DB_CONFIG,
+    EMAIL_HOST,
+    EMAIL_PORT,
+    EMAIL_ADDRESS,
+    EMAIL_PASSWORD,
+)
 
 # ==========================
 #   PASSWORD HASHING + POLICY
@@ -105,6 +92,9 @@ def _send_otp_email(to_email: str, otp: int):
     """
     Sends the OTP to the user's email using SMTP.
     """
+    if not EMAIL_ADDRESS or not EMAIL_PASSWORD:
+        raise RuntimeError("Email configuration is missing. Check your .env / config.py.")
+
     body = (
         f"Dear user,\n\n"
         f"Your Call a Doctor password reset OTP is: {otp}\n\n"
@@ -293,6 +283,7 @@ def reset_password():
 
             # Reset OTP state
             otp_verified = False
+            current_username = None
 
             forgot_password_window.destroy()
             import main_page
